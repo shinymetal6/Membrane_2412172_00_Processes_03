@@ -33,6 +33,10 @@ private slots:
 
     void on_Scan_pushButton_clicked();
 
+    void on_GetSensorInfoCommand_pushButton_clicked();
+
+    void on_ConcentratorVersion_pushButton_clicked();
+
 private:
     Ui::DataCollector *ui;
 
@@ -41,8 +45,18 @@ private:
     int serial_started;
 
     QByteArray serial_tx( QByteArray hex_line);
+    void store_sensor_data(int dsc , QByteArray reply );
+
     int timer0Id;
     int timerint;
+
+    QFile CsvFile;
+    QTextStream CsvFileStream;
+    QString filename;
+    int cmd_counter1,cmd_counter2,cmd_counter3,cmd_counter4;
+    int toggle;
+
+
 protected:
     void timerEvent(QTimerEvent *event);
 };

@@ -28,8 +28,6 @@ private slots:
 
     void on_Power_pushButton_clicked();
 
-    void on_CheckDownload_pushButton_clicked();
-
     void on_SendFlashCommand_pushButton_clicked();
 
     void on_Port_comboBox_currentTextChanged(const QString &arg1);
@@ -58,5 +56,7 @@ private:
 
     QByteArray blob;
     QString hashStr;
+
+    const char *serial_packet;
 };
 #endif // FLASHER_H

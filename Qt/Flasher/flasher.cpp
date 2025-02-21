@@ -20,6 +20,13 @@ Flasher::Flasher(QWidget *parent)
     , ui(new Ui::Flasher)
 {
     ui->setupUi(this);
+    ui->SendFlashCommand_pushButton->setEnabled(false);
+    QString safe= "QProgressBar::chunk {background: QLinearGradient( x1: 0, y1: 0, x2: 1, y2: 0,stop: 0 #78d,stop: 0.4999 #46a,stop: 0.5 #45a,stop: 1 #238 );border-bottom-right-radius: 7px;border-bottom-left-radius: 7px;border: 1px solid black;}";
+    ui->download_progressBar->setStyleSheet(safe);
+    ui->download_progressBar->setValue(0);
+    ui->Sensdownload_progressBar->setStyleSheet(safe);
+    ui->Sensdownload_progressBar->setValue(0);
+
 }
 
 Flasher::~Flasher()
@@ -47,18 +54,47 @@ QPixmap greenled(":/ledgreen.png");
     if(serial.waitForReadyRead(WAIT_REPLY))
     {
         serial_reply = serial.readAll();
-        const char *data = serial_reply.data();
+        serial_packet = serial_reply.data();
         if ( do_echo )
-            qDebug()<< serial_reply;
-        return atoi(data);
-    }
-    qDebug()<< "RX timeout";
-    serial.flush();
+            qDebug()<< atoi(serial_packet);
+//        return atoi(serial_packet);
+        return serial_packet[0];
 
-    return 0x41;
+    }
+    //qDebug()<< "RX timeout";
+    serial.flush();
+    return 0;
 }
 
 
+void Flasher::on_DownloadXMODEMRX_pushButton_clicked()
+{
+    QString cmd;
+    int retry=10 , serial_ret;
+    ui->download_progressBar->setValue(0);
+
+    serial.flush();
+    cmd = "<h " + QString::number(file_size) + " " + bin_filename + " " + hashStr + " >";
+    qDebug()<< cmd;
+
+    serial_tx(cmd.toUtf8());
+    qDebug()<< "Awaiting Poll";
+    serial.flush();
+    while ( (serial_ret = serial_rx(1)) != 0x15 )
+    {
+        ui->statusbar->showMessage("Retry");
+        qDebug()<< hex << serial_packet;
+        //retry--;
+        if ( retry == 0 )
+        {
+            ui->statusbar->showMessage(bin_filename+" aborted download");
+            qDebug()<<bin_filename<<" aborted download";
+            return;
+        }
+    }
+    qDebug()<< "Poll received, download enabled";
+    download_binary();
+}
 void Flasher::on_Port_comboBox_currentTextChanged(const QString &arg1)
 {
     QPixmap redled (":/ledred.png");
@@ -118,11 +154,15 @@ void Flasher::download_binary(void)
     int index=0;
     int block_number;
     int csum;
+    QString safe= "QProgressBar::chunk {background: QLinearGradient( x1: 0, y1: 0, x2: 1, y2: 0,stop: 0 #78d,stop: 0.4999 #46a,stop: 0.5 #45a,stop: 1 #238 );border-bottom-right-radius: 7px;border-bottom-left-radius: 7px;border: 1px solid black;}";
+    QString done= "QProgressBar::chunk {background: QLinearGradient( x1: 0, y1: 0, x2: 1, y2: 0,stop: 0 #00FF00,stop: 0.4999 #00FF00,stop: 0.5 #00FF00,stop: 1 #238 );border-bottom-right-radius: 7px;border-bottom-left-radius: 7px;border: 1px solid black;}";
 
     ui->statusbar->showMessage("Downloading "+bin_filename);
     block_number = 1;
     ui->Flashing_label->setPixmap(redled);
     s_unit = file_size/100;
+
+    ui->download_progressBar->setStyleSheet(safe);
     ui->download_progressBar->setValue(0);
 
     index=0;
@@ -169,8 +209,9 @@ void Flasher::download_binary(void)
     QByteArray ba1(QByteArray::fromRawData(data, 1));
     serial_tx(ba1);
     ui->statusbar->showMessage(bin_filename+" downloaded");
+
+    ui->download_progressBar->setStyleSheet(done);
     ui->download_progressBar->setValue(100);
-    qDebug()<<bin_filename<<" downloaded";
     ui->Flashing_label->setPixmap(greenled);
 }
 
@@ -194,7 +235,7 @@ void Flasher::on_SelectFile_pushButton_clicked()
 {
     QString filters = "BIN/WAV/IHEX files (*.bin , *.wav , *.hex)";
 
-    filename = QFileDialog::getOpenFileName(this, tr("Open bin/wav/hex File"), "/Devel/Stm32_16.1_A_os_2024.10-rc/Membrane-2412171-00-WSensor_03/Debug",filters);
+    filename = QFileDialog::getOpenFileName(this, tr("Open bin/wav/hex File"), "/Devel/Stm32_16.1_A_os_2025.03-rc_alternate/Membrane-2412171-00-WSensor_03/Debug",filters);
     hash_file();
     ui->label_BINFILE->setText(filename);
     QFile file(filename);
@@ -213,34 +254,6 @@ void Flasher::on_SelectFile_pushButton_clicked()
     }
 }
 
-void Flasher::on_DownloadXMODEMRX_pushButton_clicked()
-{
-    QString cmd;
-    int retry=10 , serial_ret;
-    ui->download_progressBar->setValue(0);
-
-    serial.flush();
-    cmd = "<h " + QString::number(file_size) + " " + bin_filename + " " + hashStr + " >";
-//    cmd = "<h " + QString::number(file_size) + " " + bin_filename + " >";
-    qDebug()<< cmd;
-
-    serial_tx(cmd.toUtf8());
-    qDebug()<< "Awaiting Poll";
-    while ( (serial_ret = serial_rx(0)) != 0x15 )
-    {
-        ui->statusbar->showMessage("Retry");
-        qDebug()<<"Retry on 0x15 with "<< serial_ret;
-        retry--;
-        if ( retry == 0 )
-        {
-            ui->statusbar->showMessage(bin_filename+" aborted download");
-            qDebug()<<bin_filename<<" aborted download";
-            return;
-        }
-    }
-    qDebug()<< "Poll received, download enabled";
-    download_binary();
-}
 
 
 void Flasher::on_Power_pushButton_clicked()
@@ -269,22 +282,70 @@ void Flasher::on_Power_pushButton_clicked()
     serial_rx(1);
 }
 
-
-
-void Flasher::on_CheckDownload_pushButton_clicked()
+void Flasher::on_GetSensorInfoCommand_pushButton_clicked()
 {
     QString cmd;
     QByteArray Command;
 
     ui->FlashLine_comboBox->currentText();
 
-   cmd = "<C "+ui->FlashLine_comboBox->currentText()+" "+ui->FlashSensor_comboBox->currentText()+">";
+   cmd = "<J "+ui->FlashLine_comboBox->currentText()+" "+ui->FlashSensor_comboBox->currentText()+">";
    serial.flush();
-   qDebug()<< cmd;
+   //qDebug()<< cmd;
    serial_tx(cmd.toUtf8());
    serial_rx(1);
+   ui->label_SensorInfo->setText(serial_packet);
 }
 
+void Flasher::on_DownloadTuSensor_pushButton_clicked()
+{
+    QString cmd;
+    QByteArray Command;
+    int serial_reply=0;
+    QString danger = "QProgressBar::chunk {background: QLinearGradient( x1: 0, y1: 0, x2: 1, y2: 0,stop: 0 #FF0350,stop: 0.4999 #FF0020,stop: 0.5 #FF0019,stop: 1 #FF0000 );border-bottom-right-radius: 5px;border-bottom-left-radius: 5px;border: .px solid black;}";
+    QString safe= "QProgressBar::chunk {background: QLinearGradient( x1: 0, y1: 0, x2: 1, y2: 0,stop: 0 #78d,stop: 0.4999 #46a,stop: 0.5 #45a,stop: 1 #238 );border-bottom-right-radius: 7px;border-bottom-left-radius: 7px;border: 1px solid black;}";
+    QString done= "QProgressBar::chunk {background: QLinearGradient( x1: 0, y1: 0, x2: 1, y2: 0,stop: 0 #00FF00,stop: 0.4999 #00FF00,stop: 0.5 #00FF00,stop: 1 #238 );border-bottom-right-radius: 7px;border-bottom-left-radius: 7px;border: 1px solid black;}";
+
+    QPixmap redled (":/ledred.png");
+    QPixmap greenled(":/ledgreen.png");
+
+
+    ui->FlashingSensors_label->setPixmap(redled);
+
+    ui->FlashLine_comboBox->currentText();
+
+    cmd = "<F "+ui->FlashLine_comboBox->currentText()+" "+ui->FlashSensor_comboBox->currentText()+" >";
+    serial.flush();
+    //qDebug()<< cmd;
+    serial_tx(cmd.toUtf8());
+    serial_rx(1);
+    serial_reply = 0;
+    ui->Sensdownload_progressBar->setStyleSheet(safe);
+    ui->Sensdownload_progressBar->setValue(0);
+
+
+    serial_packet="0";
+    while( serial_reply < 100)
+    {
+        serial_rx(0);
+        serial_reply = atoi(serial_packet);
+        if ( serial_reply > 100 )
+        {
+            ui->Sensdownload_progressBar->setStyleSheet(danger);
+            break;
+        }
+        else
+            ui->Sensdownload_progressBar->setStyleSheet(safe);
+        ui->Sensdownload_progressBar->setValue(serial_reply);
+    }
+    if ( serial_reply <= 100 )
+    {
+        ui->Sensdownload_progressBar->setStyleSheet(done);
+        ui->Sensdownload_progressBar->setValue(100);
+        ui->FlashingSensors_label->setPixmap(greenled);
+        ui->SendFlashCommand_pushButton->setEnabled(true);
+    }
+}
 
 void Flasher::on_SendFlashCommand_pushButton_clicked()
 {
@@ -298,46 +359,9 @@ void Flasher::on_SendFlashCommand_pushButton_clicked()
    qDebug()<< cmd;
    serial_tx(cmd.toUtf8());
    serial_rx(1);
+   ui->SendFlashCommand_pushButton->setEnabled(false);
 }
 
-void Flasher::on_GetSensorInfoCommand_pushButton_clicked()
-{
-    QString cmd;
-    QByteArray Command;
-
-    ui->FlashLine_comboBox->currentText();
-
-   cmd = "<J "+ui->FlashLine_comboBox->currentText()+" "+ui->FlashSensor_comboBox->currentText()+">";
-   serial.flush();
-   qDebug()<< cmd;
-   serial_tx(cmd.toUtf8());
-   serial_rx(1);
-}
-
-void Flasher::on_DownloadTuSensor_pushButton_clicked()
-{
-    QString cmd;
-    QByteArray Command;
-    int serial_reply;
-
-    ui->FlashLine_comboBox->currentText();
-
-    cmd = "<F "+ui->FlashLine_comboBox->currentText()+" "+ui->FlashSensor_comboBox->currentText()+" >";
-    serial.flush();
-    qDebug()<< cmd;
-    serial_tx(cmd.toUtf8());
-    serial_rx(1);
-    serial_reply = 0;
-    ui->Sensdownload_progressBar->setValue(0);
-
-    while(serial_reply < 100)
-    {
-        serial_reply = serial_rx(1);
-        qDebug()<< serial_reply;
-        ui->Sensdownload_progressBar->setValue(serial_reply);
-    }
-    ui->Sensdownload_progressBar->setValue(100);
-}
 
 void Flasher::on_ConcentratorVersion_pushButton_clicked()
 {

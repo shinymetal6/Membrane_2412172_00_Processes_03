@@ -126,6 +126,8 @@ typedef struct
 	uint16_t 		update_retries;
 	uint16_t 		update_timeout;
 	uint32_t		update_wait_sensor_setup;
+	uint32_t		update_bar_val;
+	uint32_t		update_iterations;
 	uint32_t		flash_crc;
 }MembraneSystem_TypeDef;
 

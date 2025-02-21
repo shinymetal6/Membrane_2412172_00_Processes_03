@@ -25,6 +25,15 @@
 #include "A_os_includes.h"
 #include "membrane_global_includes.h"
 
+uint8_t		packet_assemble_status;
+uint8_t 	led_cntr = 0;
+uint8_t		to_flashprc_mbx[PRC2_FLASHER_MAILBOX_LEN];
+uint8_t 	xmodem_cntr = 10;
+uint8_t		xmodem_reply;
+uint8_t		nak=X_NAK,ack=X_ACK;
+
+#define	TICK_PRC1	50
+
 USB_Drv_TypeDef	Usb_channel =
 {
 		.requested_len = USB_BUF_LEN,
@@ -78,30 +87,6 @@ UART_Drv_TypeDef Line3_Uart_Drv =
 };
 uint32_t	Line3_Uart_driver_handle;
 
-uint8_t led_cntr = 0;
-void process_led(void)
-{
-	switch(led_cntr)
-	{
-	case 7 :
-	case 9 :
-		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin,GPIO_PIN_RESET);
-		break;
-	default :
-		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin,GPIO_PIN_SET);
-		break;
-	}
-	led_cntr++;
-	if ( led_cntr >= 10 )
-		led_cntr = 0;
-}
-
-uint8_t	to_flashprc_mbx[PRC2_FLASHER_MAILBOX_LEN];
-
-uint8_t 	xmodem_cntr = 10;
-uint8_t		xmodem_reply;
-uint8_t		nak=X_NAK,ack=X_ACK;
-
 void xmodem_check(void)
 {
 	if (( MembraneUSB.usb_status & USB_XMO_INITIALIZED ) == 0 )
@@ -115,7 +100,7 @@ void xmodem_check(void)
 		if (( MembraneUSB.usb_status & (USB_XMO_INITIALIZED | USB_XMO_POLL) ) == (USB_XMO_INITIALIZED | USB_XMO_POLL))
 		{
 			xmodem_cntr++;
-			if ( xmodem_cntr >= 10 )
+			if ( xmodem_cntr >= (10 * (100/TICK_PRC1)) )
 			{
 				usb_send(usb_handle,&nak,1);
 				xmodem_cntr = 0;
@@ -148,16 +133,22 @@ uint8_t xmodem_get_file(void)
 	return 1;
 }
 
-uint32_t	Line0_Uart_rxed = 0;
-uint32_t	Line1_Uart_rxed = 0;
-uint32_t	Line2_Uart_rxed = 0;
-uint32_t	Line3_Uart_rxed = 0;
-
-uint32_t	Line_Uart_txed = 0;
-uint32_t	delay_update = 0;
-uint8_t		packet_assemble_status;
-uint8_t		sensupd=0;
-uint8_t		wait_sensor_setup=0;
+void process_led(void)
+{
+	switch(led_cntr)
+	{
+	case (7 * (100/TICK_PRC1)) :
+	case (9 * (100/TICK_PRC1)) :
+		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin,GPIO_PIN_RESET);
+		break;
+	default :
+		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin,GPIO_PIN_SET);
+		break;
+	}
+	led_cntr++;
+	if ( led_cntr >= (10 * (100/TICK_PRC1)) )
+		led_cntr = 0;
+}
 
 void process_1_comm(uint32_t process_id)
 {
@@ -186,7 +177,7 @@ uint8_t		reply_time;
 	uart_start_receive(Line2_Uart_driver_handle);
 	uart_start_receive(Line3_Uart_driver_handle);
 
-	create_timer(TIMER_ID_0,50,TIMERFLAGS_FOREVER | TIMERFLAGS_ENABLED);
+	create_timer(TIMER_ID_0,TICK_PRC1,TIMERFLAGS_FOREVER | TIMERFLAGS_ENABLED);
 
 	MembraneSystem.sensor_selector = 0;
 
@@ -207,7 +198,6 @@ uint8_t		reply_time;
 					else
 						MembraneSystem.sensor_selector ++;
 					send_datarequest_to_sensors(MembraneSystem.sensor_selector);
-					Line_Uart_txed++;
 				}
 				else
 				{
@@ -225,6 +215,7 @@ uint8_t		reply_time;
 							{
 								MembraneSystem.sensors_status &= ~(SENSORS_ON_UPDATE | SENSORS_PKTSENT);
 								MembraneSystem.update_retries = 0;
+								send_sensor_update_progress(MembraneSystem.update_sensor,1000);
 							}
 							else
 								MembraneSystem.update_pkt_counter = MembraneSystem.update_numeration+1;
@@ -238,6 +229,7 @@ uint8_t		reply_time;
 							{
 								MembraneSystem.sensors_status &= ~(SENSORS_ON_UPDATE | SENSORS_PKTSENT);
 								MembraneSystem.update_retries = 0;
+								send_sensor_update_progress(MembraneSystem.update_sensor,1000);
 							}
 							else
 							{

@@ -75,50 +75,7 @@ uint32_t	crc_packet(uint32_t 	*flash_data_ptr,uint32_t flash_data_len)
 	return HAL_CRC_Calculate(&hcrc, flash_data_ptr, flash_data_len);
 }
 
-void updater_create_packet(uint8_t address)
-{
-uint32_t	pktcrc,i;
 
-	MembraneSystem.sensor_scratchbuf[0] = 0;
-	MembraneSystem.sensor_scratchbuf[SENSORS_INITIATOR] = '<';
-	MembraneSystem.sensor_scratchbuf[SENSORS_UPDATE_CMD] = SENSORS_FLASH;
-	MembraneSystem.sensor_scratchbuf[SENSORS_UPDATE_ADDRESS] = address;
-	MembraneSystem.sensor_scratchbuf[SENSORS_UPDATE_PKTCNT] = MembraneSystem.update_pkt_counter;
-	for(i=0;i<SENSORS_UPDATE_PAYLOAD;i++)
-		MembraneSystem.sensor_scratchbuf[i+SENSORS_UPDATE_DATA] = MembraneSystem.update_data_src_address[i + (MembraneSystem.update_pkt_counter*SENSORS_UPDATE_PAYLOAD)];
-	MembraneSystem.update_data_count+=SENSORS_UPDATE_PAYLOAD;
-	pktcrc = crc_packet((uint32_t *)&MembraneSystem.sensor_scratchbuf[SENSORS_UPDATE_DATA],SENSORS_UPDATE_PAYLOAD);
-	MembraneSystem.sensor_scratchbuf[SENSORS_CRC_HH] = pktcrc >> SENSORS_CRC_HH_SHIFT;
-	MembraneSystem.sensor_scratchbuf[SENSORS_CRC_HL] = pktcrc >> SENSORS_CRC_HL_SHIFT;
-	MembraneSystem.sensor_scratchbuf[SENSORS_CRC_LH] = pktcrc >> SENSORS_CRC_LH_SHIFT;
-	MembraneSystem.sensor_scratchbuf[SENSORS_CRC_LL] = pktcrc >> SENSORS_CRC_LL_SHIFT;
-	MembraneSystem.sensor_scratchbuf[SENSORS_CLOSING_FLAG] = 'D';
-	MembraneSystem.sensor_scratchbuf[SENSORS_TERMINATOR] = '>';
-	MembraneSystem.sensor_scratchbuf[SENSORS_TERMINATOR+1] = 0;
-}
-
-uint8_t bar_val = 0, iterations=0;
-uint32_t send_update(void)
-{
-	updater_create_packet(MembraneSystem.update_sensor);
-	send_update_packet_to_sensors(MembraneSystem.sensor_scratchbuf,SENSORS_UPDATE_LEN);
-	iterations++;
-	if ( iterations == 12 )
-	{
-		iterations = 0;
-		bar_val += 5;
-		send_sensor_update_progress(MembraneSystem.update_sensor,bar_val);
-	}
-	if ( MembraneSystem.update_pkt_counter >= SENSORS_UPDATE_PKTNUM)
-	{
-		MembraneSystem.sensors_status &= ~(SENSORS_ON_UPDATE | SENSORS_PKTSENT);
-		iterations = 0;
-		bar_val = 0;
-		return 0;
-	}
-	return 1;
-
-}
 
 uint8_t send_get_acq_reply(void)
 {
@@ -158,6 +115,48 @@ void get_sensors_info(void)
 	send_command_to_single_line(MembraneSystem.sensor_scratchbuf,6);
 }
 
+void updater_create_packet(uint8_t address)
+{
+uint32_t	pktcrc,i;
+
+	MembraneSystem.sensor_scratchbuf[0] = 0;
+	MembraneSystem.sensor_scratchbuf[SENSORS_INITIATOR] = '<';
+	MembraneSystem.sensor_scratchbuf[SENSORS_UPDATE_CMD] = SENSORS_FLASH;
+	MembraneSystem.sensor_scratchbuf[SENSORS_UPDATE_ADDRESS] = address;
+	MembraneSystem.sensor_scratchbuf[SENSORS_UPDATE_PKTCNT] = MembraneSystem.update_pkt_counter;
+	for(i=0;i<SENSORS_UPDATE_PAYLOAD;i++)
+		MembraneSystem.sensor_scratchbuf[i+SENSORS_UPDATE_DATA] = MembraneSystem.update_data_src_address[i + (MembraneSystem.update_pkt_counter*SENSORS_UPDATE_PAYLOAD)];
+	MembraneSystem.update_data_count+=SENSORS_UPDATE_PAYLOAD;
+	pktcrc = crc_packet((uint32_t *)&MembraneSystem.sensor_scratchbuf[SENSORS_UPDATE_DATA],SENSORS_UPDATE_PAYLOAD);
+	MembraneSystem.sensor_scratchbuf[SENSORS_CRC_HH] = pktcrc >> SENSORS_CRC_HH_SHIFT;
+	MembraneSystem.sensor_scratchbuf[SENSORS_CRC_HL] = pktcrc >> SENSORS_CRC_HL_SHIFT;
+	MembraneSystem.sensor_scratchbuf[SENSORS_CRC_LH] = pktcrc >> SENSORS_CRC_LH_SHIFT;
+	MembraneSystem.sensor_scratchbuf[SENSORS_CRC_LL] = pktcrc >> SENSORS_CRC_LL_SHIFT;
+	MembraneSystem.sensor_scratchbuf[SENSORS_CLOSING_FLAG] = 'D';
+	MembraneSystem.sensor_scratchbuf[SENSORS_TERMINATOR] = '>';
+	MembraneSystem.sensor_scratchbuf[SENSORS_TERMINATOR+1] = 0;
+}
+
+uint32_t send_update(void)
+{
+	updater_create_packet(MembraneSystem.update_sensor);
+	send_update_packet_to_sensors(MembraneSystem.sensor_scratchbuf,SENSORS_UPDATE_LEN);
+	MembraneSystem.update_iterations++;
+	if ( MembraneSystem.update_iterations == 12 )
+	{
+		MembraneSystem.update_iterations = 0;
+		MembraneSystem.update_bar_val += 5;
+		send_sensor_update_progress(MembraneSystem.update_sensor,MembraneSystem.update_bar_val);
+	}
+	if ( MembraneSystem.update_pkt_counter >= SENSORS_UPDATE_PKTNUM)
+	{
+		MembraneSystem.sensors_status &= ~(SENSORS_ON_UPDATE | SENSORS_PKTSENT);
+		MembraneSystem.update_iterations = 0;
+		MembraneSystem.update_bar_val = 0;
+		return 0;
+	}
+	return 1;
+}
 void send_update_packet_to_sensors(uint8_t *packet,uint16_t len)
 {
 	if ((MembraneSystem.sensors_status & SENSORS_POWERED) == SENSORS_POWERED)
@@ -184,7 +183,8 @@ void send_update_command_to_sensors(void)
 
 	MembraneSystem.sensors_status &= ~SENSORS_PKTSENT;
 	MembraneSystem.sensors_status |= SENSORS_ON_UPDATE;
-
+	MembraneSystem.update_iterations = 0;
+	MembraneSystem.update_bar_val = 0;
 
 	MembraneSystem.sensor_scratchbuf[0] = 0;
 	MembraneSystem.sensor_scratchbuf[1] = '<';
