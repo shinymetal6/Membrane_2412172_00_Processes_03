@@ -80,16 +80,24 @@ uint32_t	crc_packet(uint32_t 	*flash_data_ptr,uint32_t flash_data_len)
 uint8_t send_get_acq_reply(void)
 {
 uint8_t	line,sensor;
-	line = MembraneUSB.parameter1_from_usb - 1;
-	sensor = MembraneUSB.parameter2_from_usb - 1;
-	sprintf((char *)MembraneUSB.usb_tx_buf,"%02x %02x %02x %04x %04x",
-			MembraneSensorsArray[line][sensor].type,
-			MembraneSensorsArray[line][sensor].address,
-			MembraneSensorsArray[line][sensor].scale_factor,
-			MembraneSensorsArray[line][sensor].data,
-			MembraneSensorsArray[line][sensor].temperature
-			);
-	MembraneUSB.usb_tx_buf_len = strlen((char *)MembraneUSB.usb_tx_buf);
+	if (MembraneUSB.parameter1_from_usb <= MAX_LINES)
+	{
+		if (MembraneUSB.parameter2_from_usb <= MAX_SENSORS)
+		{
+			line = MembraneUSB.parameter1_from_usb - 1;
+			sensor = MembraneUSB.parameter2_from_usb - 1;
+			sprintf((char *)MembraneUSB.usb_tx_buf,"%02x %02x %02x %04x %04x",
+					MembraneSensorsArray[line][sensor].type,
+					MembraneSensorsArray[line][sensor].address,
+					MembraneSensorsArray[line][sensor].scale_factor,
+					MembraneSensorsArray[line][sensor].data,
+					MembraneSensorsArray[line][sensor].temperature
+					);
+			MembraneUSB.usb_tx_buf_len = strlen((char *)MembraneUSB.usb_tx_buf);
+			return 0;
+		}
+	}
+	MembraneUSB.usb_tx_buf_len = 0;
 	return 0;
 }
 

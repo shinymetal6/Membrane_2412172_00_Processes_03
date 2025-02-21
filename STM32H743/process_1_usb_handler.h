@@ -27,6 +27,6 @@ extern	uint8_t pack_USB_packet(uint8_t *rx_buf,uint8_t len);
 extern	uint8_t decode_USB_packet(uint8_t* Buf);
 extern	uint8_t parse_USB_packet(uint8_t* Buf);
 extern	void 	send_sensor_version(uint8_t address,uint8_t type , char *packet);
-extern	void 	send_sensor_update_progress(uint8_t address, uint8_t pkt_num);
+extern	void 	send_sensor_update_progress(uint8_t address, uint32_t pkt_num);
 
 #endif /* PROCESS_1_USB_HANDLER_H_ */

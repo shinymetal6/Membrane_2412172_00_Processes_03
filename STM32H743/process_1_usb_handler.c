@@ -187,10 +187,10 @@ void send_sensor_version(uint8_t address,uint8_t type , char *packet)
 	usb_send(usb_handle,MembraneUSB.usb_tx_buf,MembraneUSB.usb_tx_buf_len-1);
 }
 
-void send_sensor_update_progress(uint8_t address, uint8_t pkt_num)
+void send_sensor_update_progress(uint8_t address, uint32_t pkt_num)
 {
 	bzero(MembraneUSB.usb_tx_buf,USB_BUF_LEN);
-	sprintf((char *)MembraneUSB.usb_tx_buf,"%d",pkt_num);
+	sprintf((char *)MembraneUSB.usb_tx_buf,"%d",(int )pkt_num);
 	MembraneUSB.usb_tx_buf_len = strlen((char *)MembraneUSB.usb_tx_buf);
 	usb_send(usb_handle,MembraneUSB.usb_tx_buf,MembraneUSB.usb_tx_buf_len);
 }

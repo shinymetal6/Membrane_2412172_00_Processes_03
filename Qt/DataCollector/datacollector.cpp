@@ -21,6 +21,8 @@ DataCollector::DataCollector(QWidget *parent)
     ui->setupUi(this);
     ui->data_frame->setEnabled(false);
     ui->Info_frame->setEnabled(false);
+    ui->DEBUG_frame->setEnabled(false);
+
     ui->Power_pushButton->setEnabled(false);
     ui->Scan_pushButton->setText("Scan");
     timer0Id = 0;
@@ -63,6 +65,7 @@ void DataCollector::on_Port_comboBox_currentTextChanged(const QString &arg1)
         ui->Comm_label->setPixmap(redled);
         ui->data_frame->setEnabled(false);
         ui->Info_frame->setEnabled(false);
+        ui->DEBUG_frame->setEnabled(false);
         ui->statusbar->showMessage("Serial port closed");
         ui->Power_pushButton->setEnabled(false);
         return;
@@ -77,6 +80,7 @@ void DataCollector::on_Port_comboBox_currentTextChanged(const QString &arg1)
             ui->statusbar->showMessage(arg1+" : "+serial.errorString());
             ui->data_frame->setEnabled(false);
             ui->Info_frame->setEnabled(false);
+            ui->DEBUG_frame->setEnabled(false);
             ui->Power_pushButton->setEnabled(false);
         }
         else
@@ -87,6 +91,7 @@ void DataCollector::on_Port_comboBox_currentTextChanged(const QString &arg1)
             serial.setReadBufferSize (1024);
             ui->Power_pushButton->setEnabled(true);
             ui->Info_frame->setEnabled(true);
+            ui->DEBUG_frame->setEnabled(true);
         }
     }
     else
@@ -95,6 +100,7 @@ void DataCollector::on_Port_comboBox_currentTextChanged(const QString &arg1)
         ui->statusbar->showMessage(arg1+" : "+serial.errorString());
         ui->data_frame->setEnabled(false);
         ui->Info_frame->setEnabled(false);
+        ui->DEBUG_frame->setEnabled(false);
     }
 }
 
@@ -303,7 +309,7 @@ void DataCollector::timerEvent(QTimerEvent *event)
                 Command = "<A "+qline+" "+qsensor+">";
                 if ( (reply = serial_tx(Command)) != "" )
                 {
-                    if ( ui->DebugEnable_checkBox->isChecked() == true)
+                    if ( ui->DSCDebugEnable_checkBox->isChecked() == true)
                     {
                         if (( line_debug == 0) && ( sensor_debug == 0))
                             qDebug()<< qline << " " << qsensor << " " << reply;
