@@ -1,0 +1,569 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Flasher</class>
+ <widget class="QMainWindow" name="Flasher">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>396</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Flasher</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QComboBox" name="Port_comboBox">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>10</y>
+      <width>151</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="currentText">
+     <string>Invalid</string>
+    </property>
+    <item>
+     <property name="text">
+      <string>Invalid</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>/dev/ttyACM0</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>/dev/ttyACM1</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>/dev/ttyUSB0</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>/dev/ttyUSB1</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>COM1</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>COM2</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>COM3</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>COM4</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>COM5</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>COM6</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>COM7</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>COM8</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>COM9</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>COM10</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QLabel" name="Comm_label">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>10</y>
+      <width>22</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="Resources.qrc">:/ledred.png</pixmap>
+    </property>
+    <property name="scaledContents">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QFrame" name="Download_frame">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>160</y>
+      <width>781</width>
+      <height>171</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="QPushButton" name="DownloadTuSensor_pushButton">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>40</y>
+       <width>151</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Download to sensor</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="FlashingSensors_label">
+     <property name="geometry">
+      <rect>
+       <x>470</x>
+       <y>10</y>
+       <width>22</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="pixmap">
+      <pixmap resource="Resources.qrc">:/ledgreen.png</pixmap>
+     </property>
+     <property name="scaledContents">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="FlashSensor_comboBox">
+     <property name="geometry">
+      <rect>
+       <x>390</x>
+       <y>10</y>
+       <width>51</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <item>
+      <property name="text">
+       <string>1</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>2</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>3</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>4</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>5</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>6</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>7</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>8</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>9</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>10</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>11</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>12</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>13</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>14</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>15</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>16</string>
+      </property>
+     </item>
+    </widget>
+    <widget class="QLabel" name="label_24">
+     <property name="geometry">
+      <rect>
+       <x>230</x>
+       <y>10</y>
+       <width>31</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Line</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_25">
+     <property name="geometry">
+      <rect>
+       <x>340</x>
+       <y>10</y>
+       <width>51</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Sensor</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="FlashLine_comboBox">
+     <property name="geometry">
+      <rect>
+       <x>280</x>
+       <y>10</y>
+       <width>51</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <item>
+      <property name="text">
+       <string>1</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>2</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>3</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>4</string>
+      </property>
+     </item>
+    </widget>
+    <widget class="QPushButton" name="CheckDownload_pushButton">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>70</y>
+       <width>151</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Check Download</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="SendFlashCommand_pushButton">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>100</y>
+       <width>151</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Send Flash</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_30">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>161</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Select sensor to flash</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="GetSensorInfoCommand_pushButton">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>130</y>
+       <width>151</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Get Sensor Info</string>
+     </property>
+    </widget>
+    <widget class="QProgressBar" name="Sensdownload_progressBar">
+     <property name="geometry">
+      <rect>
+       <x>170</x>
+       <y>40</y>
+       <width>561</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="maximum">
+      <number>100</number>
+     </property>
+     <property name="value">
+      <number>0</number>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QFrame" name="Fileframe">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>40</y>
+      <width>781</width>
+      <height>111</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="QLabel" name="Flashing_label">
+     <property name="geometry">
+      <rect>
+       <x>750</x>
+       <y>40</y>
+       <width>22</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="pixmap">
+      <pixmap resource="Resources.qrc">:/ledgreen.png</pixmap>
+     </property>
+     <property name="scaledContents">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="Power_pushButton">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>70</y>
+       <width>151</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Power ON</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_BINFILE">
+     <property name="geometry">
+      <rect>
+       <x>170</x>
+       <y>10</y>
+       <width>561</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Sunken</enum>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QProgressBar" name="download_progressBar">
+     <property name="geometry">
+      <rect>
+       <x>170</x>
+       <y>40</y>
+       <width>561</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="value">
+      <number>0</number>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="DownloadXMODEMRX_pushButton">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>40</y>
+       <width>151</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Download</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="SelectFile_pushButton">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>151</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Select File   </string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="RX_label">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>750</x>
+       <y>10</y>
+       <width>22</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="pixmap">
+      <pixmap resource="Resources.qrc">:/ledred.png</pixmap>
+     </property>
+     <property name="scaledContents">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="ConcentratorVersion_pushButton">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>70</y>
+       <width>161</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string> Concentrator Version</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_CONCENTRATORVERSION">
+     <property name="geometry">
+      <rect>
+       <x>360</x>
+       <y>70</y>
+       <width>371</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Sunken</enum>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>27</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources>
+  <include location="Resources.qrc"/>
+ </resources>
+ <connections/>
+</ui>
