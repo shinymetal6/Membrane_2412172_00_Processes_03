@@ -86,10 +86,10 @@ uint8_t	line,sensor;
 		{
 			line = MembraneUSB.parameter1_from_usb - 1;
 			sensor = MembraneUSB.parameter2_from_usb - 1;
-			sprintf((char *)MembraneUSB.usb_tx_buf,"%02x %02x %02x %04x %04x",
+			sprintf((char *)MembraneUSB.usb_tx_buf,"%02x %02x %04x %04x %04x",
 					MembraneSensorsArray[line][sensor].type,
 					MembraneSensorsArray[line][sensor].address,
-					MembraneSensorsArray[line][sensor].scale_factor,
+					MembraneSensorsArray[line][sensor].dac_value,
 					MembraneSensorsArray[line][sensor].data,
 					MembraneSensorsArray[line][sensor].temperature
 					);
@@ -219,7 +219,8 @@ void send_write_command_to_sensors(void)
  * <A Address Type ScaleFactor Data Temperature>
  */
 
-uint16_t	data,temperature,message=0;
+uint16_t	data,temperature,dac_value,message=0;
+
 uint8_t packet_assemble(uint8_t line)
 {
 	if ( MembraneSystem.sensor_rxstate == SENSORS_WAIT_INITIATOR_CHAR)
@@ -241,7 +242,7 @@ uint8_t packet_assemble(uint8_t line)
 			switch(MembraneSystem.sensor_rxbuf[line][1])
 			{
 			case SENSORS_GETACQ_COMMAND :
-				MembraneSystem.sensor_rx_count = 10;
+				MembraneSystem.sensor_rx_count = 11;
 				break;
 			case SENSORS_GO_UPDATMODE :
 				MembraneSystem.sensor_rx_count = 7;
@@ -276,9 +277,10 @@ uint8_t packet_assemble(uint8_t line)
 					{
 						MembraneSensorsArray[line][MembraneSystem.sensor_selector-1].type = MembraneSystem.sensor_rxbuf[line][TYPE_POSITION];
 						MembraneSensorsArray[line][MembraneSystem.sensor_selector-1].address = MembraneSystem.sensor_rxbuf[line][ADDRESS_POSITION];
-						MembraneSensorsArray[line][MembraneSystem.sensor_selector-1].scale_factor = MembraneSystem.sensor_rxbuf[line][SCALE_POSITION];
+						dac_value = (MembraneSystem.sensor_rxbuf[line][DAC_POSITION] << 8 ) | MembraneSystem.sensor_rxbuf[line][DAC_POSITION+1];
 						data = (MembraneSystem.sensor_rxbuf[line][DATA_POSITION] << 8 ) | MembraneSystem.sensor_rxbuf[line][DATA_POSITION+1];
 						temperature = (MembraneSystem.sensor_rxbuf[line][TEMP_POSITION] << 8 ) | MembraneSystem.sensor_rxbuf[line][TEMP_POSITION+1];
+						MembraneSensorsArray[line][MembraneSystem.sensor_selector-1].dac_value = dac_value;
 						MembraneSensorsArray[line][MembraneSystem.sensor_selector-1].data = data;
 						MembraneSensorsArray[line][MembraneSystem.sensor_selector-1].temperature = temperature;
 						MembraneSystem.sensor_rxstate = SENSORS_WAIT_INITIATOR_CHAR;
@@ -288,7 +290,7 @@ uint8_t packet_assemble(uint8_t line)
 				/* flash section */
 				else if ( MembraneSystem.sensor_rxbuf[line][CMD_POSITION] == SENSORS_GO_UPDATMODE)
 				{
-					MembraneSystem.update_result = MembraneSystem.sensor_rxbuf[line][SCALE_POSITION];
+					MembraneSystem.update_result = MembraneSystem.sensor_rxbuf[line][DAC_POSITION];
 					MembraneSystem.update_numeration = MembraneSystem.sensor_rxbuf[line][DATA_POSITION];
 					MembraneSystem.sensor_rxstate = SENSORS_WAIT_INITIATOR_CHAR;
 					return 0;
@@ -297,7 +299,7 @@ uint8_t packet_assemble(uint8_t line)
 				{
 					if (( MembraneSystem.sensors_status & SENSORS_ON_UPDATE ) == SENSORS_ON_UPDATE )
 					{
-						MembraneSystem.update_result = MembraneSystem.sensor_rxbuf[line][SCALE_POSITION];
+						MembraneSystem.update_result = MembraneSystem.sensor_rxbuf[line][DAC_POSITION];
 						MembraneSystem.update_numeration = MembraneSystem.sensor_rxbuf[line][DATA_POSITION];
 						MembraneSystem.sensor_rxstate = SENSORS_WAIT_INITIATOR_CHAR;
 						return 0;

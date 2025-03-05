@@ -29,7 +29,7 @@
 
 #include "process_2_flasher.h"
 
-#define		MAX_SENSORS			8
+#define		MAX_SENSORS			16
 #define		MAX_LINES			4
 #define		MAX_BOARDS			4
 #define		USB_BUF_LEN			128
@@ -93,6 +93,7 @@
 typedef struct
 {
 	uint8_t 		sensors_status;
+	uint8_t 		sensors_max_sensor;
 	uint8_t 		line_selector;
 	uint8_t 		sensor_selector;
 	uint8_t 		sensor_scan_time;
@@ -154,17 +155,17 @@ typedef struct
 #define	CMD_POSITION		1
 #define	ADDRESS_POSITION	2
 #define	TYPE_POSITION		3
-#define	SCALE_POSITION		4
-#define	DATA_POSITION		5
-#define	TEMP_POSITION		7
-#define	ENDFLAG_POSITION	9
+#define	DAC_POSITION		4
+#define	DATA_POSITION		6
+#define	TEMP_POSITION		8
+#define	ENDFLAG_POSITION	10
 
 
 typedef struct
 {
 	uint8_t 		type;
 	uint8_t 		address;
-	uint8_t 		scale_factor;
+	uint16_t 		dac_value;
 	uint16_t 		data;
 	uint16_t 		temperature;
 }MembraneSensorsArray_TypeDef;

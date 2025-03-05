@@ -37,6 +37,8 @@ private slots:
 
     void on_ConcentratorVersion_pushButton_clicked();
 
+    void on_SelectAlgoCSVFile_pushButton_clicked();
+
 private:
     Ui::DataCollector *ui;
 
@@ -51,10 +53,17 @@ private:
     int timerint;
 
     QFile CsvFile;
+
     QTextStream CsvFileStream;
     QString filename;
+    QString csvk_filename;
+
     int cmd_counter1,cmd_counter2,cmd_counter3,cmd_counter4;
     int toggle;
+
+    float float_csv[32];
+    int float_csv_loaded;
+
 
 
 protected:

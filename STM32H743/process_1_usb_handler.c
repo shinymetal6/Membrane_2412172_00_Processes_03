@@ -112,6 +112,9 @@ uint8_t i,j;
 		break;
 	case SENSORS_SCAN_COMMAND:
 		MembraneSystem.sensors_status |= SENSORS_RUN_STATE;
+		MembraneSystem.sensors_max_sensor = MembraneUSB.parameter1_from_usb;
+		if (( MembraneSystem.sensors_max_sensor == 0 ) || ( MembraneSystem.sensors_max_sensor > MAX_SENSORS ))
+			MembraneSystem.sensors_max_sensor = 8;
 		sprintf((char *)MembraneUSB.usb_tx_buf,"SCAN");
 		MembraneUSB.usb_tx_buf_len = strlen((char *)MembraneUSB.usb_tx_buf);
 		ret_val = 0;

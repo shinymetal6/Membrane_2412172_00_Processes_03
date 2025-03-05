@@ -193,7 +193,7 @@ uint8_t		reply_time;
 			{
 				if ((MembraneSystem.sensors_status & SENSORS_RUN_STATE) == SENSORS_RUN_STATE)
 				{
-					if (MembraneSystem.sensor_selector > MAX_SENSORS)
+					if (MembraneSystem.sensor_selector > MembraneSystem.sensors_max_sensor)
 						MembraneSystem.sensor_selector = 1;
 					else
 						MembraneSystem.sensor_selector ++;

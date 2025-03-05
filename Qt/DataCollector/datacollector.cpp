@@ -62,6 +62,7 @@ void DataCollector::on_Port_comboBox_currentTextChanged(const QString &arg1)
     serial.close();
     if ( arg1 == "Invalid")
     {
+        killTimer(timer0Id);
         ui->Comm_label->setPixmap(redled);
         ui->data_frame->setEnabled(false);
         ui->Info_frame->setEnabled(false);
@@ -133,10 +134,10 @@ void DataCollector::on_Power_pushButton_clicked()
 
 void DataCollector::on_Scan_pushButton_clicked()
 {
-    QByteArray reply;
-    QByteArray Command;
-    QPixmap redled (":/ledred.png");
-    QPixmap greenled(":/ledgreen.png");
+    QByteArray  reply;
+    QString     cmd;
+    QPixmap     redled (":/ledred.png");
+    QPixmap     greenled(":/ledgreen.png");
 
     toggle = 0;
     if ( ui->Scan_pushButton->text() == "Stop")
@@ -146,8 +147,8 @@ void DataCollector::on_Scan_pushButton_clicked()
         ui->statusbar->showMessage("Stopped");
         ui->SCAN_label->setPixmap(greenled);
 
-        Command = "<H>";
-        if ( (reply = serial_tx(Command)) != "1" )
+        cmd = "<H>";
+        if ( (reply = serial_tx(cmd.toUtf8())) != "1" )
         {
             qDebug()<< "Received";
         }
@@ -158,8 +159,8 @@ void DataCollector::on_Scan_pushButton_clicked()
         timer0Id = startTimer(1000);
         ui->SCAN_label->setPixmap(redled);
         cmd_counter1 = cmd_counter2 = cmd_counter3 = cmd_counter4 = 0;
-        Command = "<S>";
-        if ( (reply = serial_tx(Command)) != "1" )
+        cmd = "<S " + ui->NumberOfSensors_comboBox->currentText()+" >";
+        if ( (reply = serial_tx(cmd.toUtf8())) != "1" )
         {
             qDebug()<< "Received";
         }
@@ -172,19 +173,17 @@ void DataCollector::on_Scan_pushButton_clicked()
 void DataCollector::on_GetSensorInfoCommand_pushButton_clicked()
 {
     QString cmd;
-    QByteArray Command;
 
-   cmd = "<J "+ui->SensorInfoLine_comboBox->currentText()+" "+ui->SensorInfoSensor_comboBox->currentText()+">";
-   serial.flush();
-   serial_tx(cmd.toUtf8());
-   ui->label_SensorInfo->setText(serial_reply);
+    cmd = "<J "+ui->SensorInfoLine_comboBox->currentText()+" "+ui->SensorInfoSensor_comboBox->currentText()+">";
+    serial.flush();
+    serial_tx(cmd.toUtf8());
+    ui->label_SensorInfo->setText(serial_reply);
 }
 
 
 void DataCollector::on_ConcentratorVersion_pushButton_clicked()
 {
     QString cmd;
-    QByteArray Command;
     cmd = "<v>";
     serial.flush();
     qDebug()<< cmd;
@@ -269,11 +268,22 @@ void DataCollector::store_sensor_data( int dsc , QByteArray reply)
            &type,&sensor,&scalefactor,&readout,&temp_micro);
     if ( type == 1 )
     {
-        total_readout = readout * (scalefactor+1);
-        //qDebug() << type << "," << sensor << "," << scalefactor << "," << readout << "," << total_readout << "," << temp_micro;
-        if ( ui->CSVDebugEnable_checkBox->isChecked() == true )
-            qDebug() << timestamp << "," << cmd_counter << "," << concentrator_counter << "," << dsc << "," << sensor << "," << scalefactor+1 << "," << readout << "," << total_readout << "," << calibration << "," << temp_micro << "," << tempPT1000 << ",Y,A";
-        CsvFileStream << timestamp << "," << cmd_counter << "," << concentrator_counter << "," << dsc << "," << sensor << "," << scalefactor+1 << "," << readout << "," << total_readout << "," << calibration << "," << temp_micro << "," << tempPT1000 << ",Y,A\n";
+        if ((float_csv_loaded == 1) && (ui->useK_checkBox->isChecked() == true))
+        {
+            total_readout = readout * float_csv[scalefactor];
+            //qDebug() << type << "," << sensor << "," << scalefactor << "," << readout << "," << total_readout << "," << temp_micro;
+            if ( ui->CSVDebugEnable_checkBox->isChecked() == true )
+                qDebug() << timestamp << "," << cmd_counter << "," << concentrator_counter << "," << dsc << "," << sensor << "," << scalefactor+1 << "," << readout << "," << total_readout << "," << calibration << "," << temp_micro << "," << tempPT1000 << ",Y,A";
+            CsvFileStream << timestamp << "," << cmd_counter << "," << concentrator_counter << "," << dsc << "," << sensor << "," << scalefactor+1 << "," << readout << "," << total_readout << "," << calibration << "," << temp_micro << "," << tempPT1000 << ",Y,A\n";
+        }
+        else
+        {
+            total_readout = readout * (scalefactor+1);
+            //qDebug() << type << "," << sensor << "," << scalefactor << "," << readout << "," << total_readout << "," << temp_micro;
+            if ( ui->CSVDebugEnable_checkBox->isChecked() == true )
+                qDebug() << timestamp << "," << cmd_counter << "," << concentrator_counter << "," << dsc << "," << sensor << "," << scalefactor+1 << "," << readout << "," << total_readout << "," << calibration << "," << temp_micro << "," << tempPT1000 << ",Y,A";
+            CsvFileStream << timestamp << "," << cmd_counter << "," << concentrator_counter << "," << dsc << "," << sensor << "," << scalefactor+1 << "," << readout << "," << total_readout << "," << calibration << "," << temp_micro << "," << tempPT1000 << ",Y,A\n";
+        }
     }
     CsvFile.close();
 }
@@ -326,3 +336,40 @@ void DataCollector::timerEvent(QTimerEvent *event)
         }
     }
 }
+
+void DataCollector::on_SelectAlgoCSVFile_pushButton_clicked()
+{
+    QString filters = "CSV files (*.csv)";
+#ifdef Q_OS_WIN
+    csvk_filename = QFileDialog::getOpenFileName(this, tr("Open CSV File"), "c:/MembraneData",filters);
+#else
+    csvk_filename = QFileDialog::getOpenFileName(this, tr("Open CSV File"), "/Devel/MembraneData",filters);
+#endif
+    QFileInfo ficsv(csvk_filename);
+    QString base = ficsv.completeBaseName() + "." +ficsv.completeSuffix();
+    ui->label_CSVFILE->setText(base);
+    QFile file(csvk_filename);
+
+    if (!file.open(QIODevice::ReadOnly))
+        qDebug()<<"File not found";
+    else
+    {
+        int i=0;
+        while(!file.atEnd())
+        {
+            QString line = file.readLine();
+            QStringList cols = line.split(",");
+            float_csv[i] = cols.at(0).toFloat();
+            i++;
+            if ( i >= 14 )
+                qDebug()<<"Error " << i;
+
+        }
+        file.close();
+        qDebug() <<  "###########";
+        for(i=0;i<14;i++)
+            qDebug()<<float_csv[i];
+        float_csv_loaded = 1;
+    }
+}
+
